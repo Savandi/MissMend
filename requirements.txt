@@ -1,0 +1,9 @@
+# MissMend runtime dependencies.
+# Pinned to the versions used for the reported experiments; newer minor
+# releases are expected to work but are untested.
+torch==2.0.1
+river==0.21.0
+numpy>=1.24
+pandas>=2.0
+scipy>=1.10
+PyYAML>=6.0
