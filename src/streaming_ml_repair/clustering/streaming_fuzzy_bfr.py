@@ -219,10 +219,6 @@ class StreamingBFR:
         return None, conf, 'UNRECOVERED_ML'
 
     def argmax_label(self, z):
-        """Return the cluster matcher's argmax label irrespective of the alpha
-        gate. Returns None only when no clusters meet n_min. Used by the
-        sequence-head agreement gate, where the cluster's best guess is needed
-        even on events the cluster matcher itself abstained on."""
         best_label, _, _ = self.compute_confidence(z)
         return best_label
 

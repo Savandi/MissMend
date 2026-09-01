@@ -1,24 +1,3 @@
-"""Streaming parser for plain XES event logs from BPIC/PM benchmarks.
-
-The existing ``DataStreamXESParser`` is tied to the DataStream XES extension
-(IoT sensor blocks). BPIC logs are plain XES with no sensor data. This module
-provides a lightweight, gzip-aware iterative parser that emits
-``DataStreamXESEvent`` objects with empty ``sensor_readings`` so the rest of
-the framework can consume them without modification.
-
-Supports both ``.xes`` and ``.xes.gz`` inputs. The parser uses ``ET.iterparse``
-to keep memory bounded — BPIC2017 (1.2M events) parses without loading the
-whole tree.
-
-Standard XES attribute mapping
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    trace <string key="concept:name" .../>   → event.case_id
-    event <string key="concept:name" .../>   → event.concept_name (None when empty)
-    event <date   key="time:timestamp" .../> → event.timestamp
-    event <string key="lifecycle:transition" .../> → event.lifecycle
-    event <string key="org:resource" .../>   → event.resource
-    every other event-level attribute        → event.attributes[key] = value
-"""
 from __future__ import annotations
 import gzip
 import xml.etree.ElementTree as ET
@@ -34,10 +13,6 @@ def _strip_ns(tag: str) -> str:
     return tag
 
 def _resolve_xes_path(path: Path) -> Path:
-    """Some Windows extractions of XES files produce a nested directory of the
-    same name (``foo.xes/foo.xes``) or an empty stub directory next to a real
-    ``foo.xes.gz``. Detect and unwrap both cases so callers can pass either the
-    directory path or the file path."""
     if path.is_dir():
         inner = path / path.name
         if inner.is_file():
@@ -69,9 +44,6 @@ def _parse_timestamp(value: str) -> Optional[datetime]:
         return None
 
 def _event_from_xml(event_elem) -> DataStreamXESEvent:
-    """Convert an <event> element into a DataStreamXESEvent. The element's
-    children are <string>/<date>/<int>/<float>/<boolean> elements with
-    ``key="..."`` and ``value="..."`` attributes per the XES standard."""
     ev = DataStreamXESEvent()
     for child in event_elem:
         key = child.attrib.get('key')
@@ -91,12 +63,6 @@ def _event_from_xml(event_elem) -> DataStreamXESEvent:
     return ev
 
 def iter_events(file_path) -> Iterator[DataStreamXESEvent]:
-    """Yield DataStreamXESEvent in source order from a plain XES file.
-
-    The yield order is the file order: events appear grouped by trace
-    in the source XES, so the iterator emits trace 1's events, then trace
-    2's events, etc. Each event has its case_id set from the enclosing trace.
-    """
     path = Path(file_path)
     with _open_xes(path) as fh:
         current_case_id: Optional[str] = None
@@ -119,9 +85,6 @@ def iter_events(file_path) -> Iterator[DataStreamXESEvent]:
                 elem.clear()
 
 def load_events(file_path, max_events: Optional[int] = None):
-    """Convenience: read everything into a list (returns the same event
-    objects iter_events yields). Use only for small logs where the memory
-    profile is fine."""
     events = []
     for i, ev in enumerate(iter_events(file_path)):
         if max_events is not None and i >= max_events:

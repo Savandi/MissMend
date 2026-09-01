@@ -1,23 +1,3 @@
-"""Asymmetric calibrators for the hybrid framework's two confidence sources.
-
-The sequence rescue head emits a softmax distribution over the activity
-vocabulary; its argmax probability is calibrated with TEMPERATURE SCALING
-(Guo et al., ICML 2017). Temperature scaling fits a single scalar T that
-divides the logits before softmax: it is the simplest, most widely-adopted
-softmax post-hoc calibrator and is exactly applicable here because the
-head produces logits.
-
-The cluster matcher emits a composite confidence
-    conf = u^* . (1 - H(u) / H_max)^lambda . w_{k^*}
-that is NOT a softmax probability and has no logits. Temperature scaling
-is mis-specified for this signal. Instead the cluster confidence is mapped
-to a calibrated probability via PLATT SCALING (Niculescu-Mizil & Caruana,
-ICML 2005): a sigmoid map  P(correct | conf) = sigmoid(a * conf + b)  fit
-against empirical correctness on a held-out calibration slice.
-
-Both calibrators expose .fit(...) and .calibrate(...) and a no-op state
-that returns the input unchanged (used before the first fit).
-"""
 from __future__ import annotations
 import math
 from typing import Sequence
@@ -28,13 +8,6 @@ import torch.nn as nn
 import torch.optim as optim
 
 class TemperatureScaler:
-    """Single-parameter temperature scaling for a softmax classifier.
-
-    fit() minimises NLL on a held-out (logits, target_id) set.
-    calibrate() returns the calibrated softmax distribution for a batch
-    of logits; calibrated_argmax_prob() returns just the argmax probability
-    (i.e. the calibrated equivalent of the head's raw argmax confidence).
-    """
 
     def __init__(self):
         self.temperature = 1.0
@@ -80,12 +53,6 @@ class TemperatureScaler:
         return self._fitted
 
 class PlattScaler:
-    """Two-parameter sigmoid (Platt) scaling for a scalar confidence signal.
-
-    Fits sigmoid(a * conf + b) against empirical correctness {0,1} via
-    gradient descent on binary cross-entropy. Returns identity (the input
-    confidence unchanged) before the first fit.
-    """
 
     def __init__(self):
         self.a = 1.0
@@ -133,15 +100,6 @@ class PlattScaler:
         return self._fitted
 
 class IsotonicScaler:
-    """Non-parametric monotonic calibration (Zadrozny & Elkan 2002).
-
-    Wraps sklearn.isotonic.IsotonicRegression. Used as the non-parametric
-    comparator in the calibration validation: if the score-correctness
-    distortion is not sigmoidal, isotonic regression will fit it whereas
-    Platt cannot. The comparison Brier(Platt) vs Brier(Isotonic) on a
-    held-out half of H is the empirical test of whether Platt's sigmoidal
-    assumption is justified for this score.
-    """
 
     def __init__(self):
         self._iso = None

@@ -6,10 +6,6 @@ import json
 from datetime import datetime
 
 class ADWINDriftDetector:
-    """
-    Advanced drift detector using ADWIN algorithm for both embedding space 
-    and reconstruction error monitoring.
-    """
     
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {}
@@ -62,17 +58,6 @@ class ADWINDriftDetector:
         self.event_counters = defaultdict(int)
         
     def update_reconstruction_error(self, activity_label: str, error: float, timestamp: int) -> Dict:
-        """
-        Update ADWIN with reconstruction error and detect drift.
-        
-        Args:
-            activity_label: Activity identifier
-            error: Reconstruction error value
-            timestamp: Current timestamp
-            
-        Returns:
-            Dictionary with drift detection results
-        """
         self.event_counters[activity_label] += 1
         
         self.metric_history[f"{activity_label}_reconstruction_error"].append({
@@ -102,17 +87,6 @@ class ADWINDriftDetector:
     
     def update_embedding_metrics(self, activity_label: str, embeddings: np.ndarray, 
                                 timestamp: int) -> Dict:
-        """
-        Update ADWIN with embedding-based metrics and detect drift.
-        
-        Args:
-            activity_label: Activity identifier
-            embeddings: Array of embeddings [n_samples, embedding_dim]
-            timestamp: Current timestamp
-            
-        Returns:
-            Dictionary with drift detection results for all embedding metrics
-        """
         if embeddings.size == 0:
             return {'drift_detected': False, 'reason': 'no_embeddings'}
         
@@ -161,17 +135,6 @@ class ADWINDriftDetector:
     
     def update_cluster_metrics(self, activity_label: str, centroids: List[np.ndarray], 
                               timestamp: int) -> Dict:
-        """
-        Update ADWIN with cluster-based metrics and detect drift.
-        
-        Args:
-            activity_label: Activity identifier
-            centroids: List of cluster centroids
-            timestamp: Current timestamp
-            
-        Returns:
-            Dictionary with drift detection results
-        """
         if len(centroids) < 2:
             return {'drift_detected': False, 'reason': 'insufficient_clusters'}
         
@@ -207,19 +170,6 @@ class ADWINDriftDetector:
                             embeddings: Optional[np.ndarray] = None,
                             centroids: Optional[List[np.ndarray]] = None,
                             timestamp: int = 0) -> Dict:
-        """
-        Perform combined drift detection across all metrics.
-        
-        Args:
-            activity_label: Activity identifier
-            reconstruction_error: Current reconstruction error
-            embeddings: Optional embeddings for embedding-based metrics
-            centroids: Optional centroids for cluster-based metrics
-            timestamp: Current timestamp
-            
-        Returns:
-            Comprehensive drift detection results
-        """
         results = {
             'activity': activity_label,
             'timestamp': timestamp,
@@ -261,7 +211,6 @@ class ADWINDriftDetector:
     
     def _record_drift_event(self, activity_label: str, metric_type: str, 
                            timestamp: int, value: float):
-        """Record a drift event for tracking"""
         event = {
             'activity': activity_label,
             'metric_type': metric_type,
@@ -276,7 +225,6 @@ class ADWINDriftDetector:
     
     def _get_window_statistics(self, detector: ADWIN, metric_type: str, 
                                activity_label: str) -> Dict:
-        """Get statistics from ADWIN window"""
         try:
             return {
                 'mean': detector.mean,
@@ -295,7 +243,6 @@ class ADWINDriftDetector:
             }
     
     def _calculate_drift_severity(self, drift_types: List[str]) -> str:
-        """Calculate overall drift severity based on detected drift types"""
         if len(drift_types) == 0:
             return 'none'
         elif len(drift_types) == 1:
@@ -306,7 +253,6 @@ class ADWINDriftDetector:
             return 'high'
     
     def _get_drift_recommendation(self, results: Dict) -> str:
-        """Generate recommendation based on drift detection results"""
         if not results['drift_detected']:
             return 'continue_monitoring'
         
@@ -324,7 +270,6 @@ class ADWINDriftDetector:
             return 'monitor_closely'
     
     def get_drift_summary(self, activity_label: Optional[str] = None) -> Dict:
-        """Get comprehensive drift detection summary"""
         if activity_label:
             activities = [activity_label]
         else:
@@ -358,7 +303,6 @@ class ADWINDriftDetector:
         return summary
     
     def reset_detector(self, activity_label: str, metric_type: Optional[str] = None):
-        """Reset ADWIN detector for specific activity and metric"""
         if metric_type:
             if metric_type in self.adwin_detectors:
                 self.adwin_detectors[metric_type][activity_label] = ADWIN(
@@ -376,7 +320,6 @@ class ADWINDriftDetector:
         self.event_counters[activity_label] = 0
     
     def save_drift_state(self, filepath: str):
-        """Save drift detection state to file"""
         state = {
             'config': self.config,
             'drift_counts': dict(self.drift_count),
@@ -390,7 +333,6 @@ class ADWINDriftDetector:
             json.dump(state, f, indent=2, default=str)
     
     def load_drift_state(self, filepath: str):
-        """Load drift detection state from file"""
         with open(filepath, 'r') as f:
             state = json.load(f)
         

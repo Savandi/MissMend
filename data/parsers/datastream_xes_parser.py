@@ -8,7 +8,6 @@ from collections import defaultdict
 
 
 def _open_text(file_path):
-    """Open a file for reading, transparently decompressing .gz files."""
     if str(file_path).lower().endswith('.gz'):
         return gzip.open(file_path, 'rt', encoding='utf-8')
     return open(file_path, 'r', encoding='utf-8')
@@ -367,7 +366,6 @@ class DataStreamXESParser:
             'avg_events_per_case': total / len(cases) if cases else 0,
         }
 
-# Point each entry at your local copy of the corresponding dataset.
 DATASET_PATHS = {
     'chess': 'data/logs/chess/',
     'cottoncandy': 'data/logs/cottoncandy/',

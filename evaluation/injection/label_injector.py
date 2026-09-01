@@ -26,18 +26,6 @@ class MissingLabelInjector:
 
     @contextmanager
     def inject_in_place(self, events, rate=0.1):
-        """Context manager that injects labels in-place on `events` and restores them on exit.
-
-        Avoids the full deep-copy of the event list. Memory cost is only the
-        ground-truth dict (~80 bytes per injected event). Use as:
-
-            with injector.inject_in_place(events, rate=0.1):
-                results = list(pipeline.process_stream(iter(events)))
-                # ground truth available via injector.get_ground_truth()
-            # events[*].concept_name is restored here
-
-        Restoration also runs if the body raises.
-        """
         labelled_indices = [
             i for i, e in enumerate(events)
             if e.concept_name and str(e.concept_name).strip()

@@ -99,8 +99,6 @@ def run_evaluation(dataset_name, config_key, dataset_path, injection_rates, max_
         nat_metrics.print_summary(dataset_name=dataset_name)
 
 if __name__ == '__main__':
-    # Usage: python evaluation/run_controlled_evaluation.py [dataset] [rate ...]
-    # Defaults to the bundled 'chess' dataset over the six standard rates.
     dataset = sys.argv[1] if len(sys.argv) > 1 else 'chess'
     if len(sys.argv) > 2:
         injection_rates = [float(r) for r in sys.argv[2:]]

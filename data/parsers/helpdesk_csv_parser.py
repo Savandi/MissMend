@@ -1,21 +1,3 @@
-"""Adapter for the Italian Help Desk CSV log (BPI / PM benchmark).
-
-Source columns (from ``finale.csv``):
-    Case ID, Activity, Resource, Complete Timestamp, Variant, Variant index,
-    Variant, seriousness, customer, product, responsible_section,
-    seriousness_2, service_level, service_type, support_section, workgroup
-
-The first ``Variant`` column is duplicated in the CSV (it appears twice) —
-pandas auto-renames the second one. We map only the first occurrence.
-
-Mapping to DataStreamXESEvent:
-    Case ID            → case_id
-    Activity           → concept_name
-    Complete Timestamp → timestamp
-    Resource           → resource
-    (no lifecycle column in this log; left None)
-    All remaining columns → attributes dict (skipping the duplicated Variant)
-"""
 from __future__ import annotations
 import pandas as pd
 from datetime import datetime
@@ -36,8 +18,6 @@ def _parse_helpdesk_timestamp(value) -> Optional[datetime]:
             return None
 
 def iter_events(csv_path) -> Iterator[DataStreamXESEvent]:
-    """Yield events from the Help desk CSV in source (row) order. Each row is
-    one event; the case_id groups them implicitly."""
     df = pd.read_csv(csv_path)
     if 'Variant.1' in df.columns:
         df = df.drop(columns=['Variant.1'])

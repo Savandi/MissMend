@@ -613,11 +613,6 @@ class StreamingMLRepairPipeline:
             )
 
     def _seq_activity_id(self, label):
-        """Map a label to its sequence-vocab id. Before the vocabulary is
-        frozen (during warmup) a new id is allocated for unseen labels.
-        After freezing (post-warmup) any unseen label maps to <MISSING>
-        because the LSTM embedding table is sized at warmup time and cannot
-        grow."""
         if not label:
             return MISSING_TOKEN_ID
         s = str(label)
@@ -631,20 +626,6 @@ class StreamingMLRepairPipeline:
 
     def _warmup_sequence_head(self, labelled, feature_vectors_std,
                               holdout_idxs, train_idxs):
-        """Train the sequence rescue head on labelled \\ H. Then fit the
-        temperature scaler on the held-out H using the trained head's logits.
-
-        The cluster-confidence Platt scaler is fit in _warmup (not here) so it
-        is independent of the rescue toggle (enables the (ii) ablation arm).
-
-        Args:
-            labelled: list of (feature_vector, label) tuples (positional index
-                matches feature_vectors_std).
-            feature_vectors_std: list of standardised feature vectors aligned
-                with the labelled list.
-            holdout_idxs: indices into `labelled` reserved for calibration.
-            train_idxs: indices into `labelled` used for training.
-        """
         for _, label, _ in self.warmup_buffer:
             if label:
                 self._seq_activity_id(label)
@@ -918,24 +899,6 @@ class StreamingMLRepairPipeline:
         return result
 
     def _rescue_gate_allows(self, seq_label, memberships, seq_conf=None):
-        """F9 generalised agreement gate: decide whether to commit the rescue
-        head's prediction. The decision is independent of the streaming /
-        retroactive call site so both paths share the policy.
-
-        Returns True if any of the following holds:
-          - gating disabled,
-          - seq_conf reaches agreement_high_conf_override (a confident-rescue
-            bypass that lets the LSTM override even a disagreeing cluster),
-          - memberships is empty (no cluster signal — be permissive),
-          - the rescue label appears in the cluster's top-K memberships.
-
-        Modes preserved from the legacy gate for backwards compatibility:
-          - 'topk'  : new V2-style top-K gate (recommended).
-          - True / 'strict' : the legacy top-1 (argmax-equality) gate.
-          - 'tiered': two-threshold gate is handled at the call site; this
-            helper returns True for tiered (call site applies the higher
-            threshold on disagreement).
-        """
         mode = self.enable_agreement_gating
         if not mode:
             return True
@@ -961,13 +924,6 @@ class StreamingMLRepairPipeline:
         return False
 
     def _prior_adjust(self, label, confidence):
-        """F5: class-prior correction. Multiply the cluster confidence by
-        (p_uniform / p_class) ** class_prior_beta where p_class is the empirical
-        frequency of the predicted activity in self.activity_counts and
-        p_uniform = 1/K. Beta=0 disables the correction. Beta>0 lifts confidence
-        for under-represented activities and damps it for over-represented ones,
-        which compensates for the cluster matcher's tendency to over-commit on
-        modal classes."""
         if self.class_prior_beta <= 0.0 or not label or confidence is None:
             return confidence
         if not self.activity_counts:
@@ -984,19 +940,6 @@ class StreamingMLRepairPipeline:
         return min(1.0, confidence * factor)
 
     def _retroactive_warmup_recovery(self):
-        """After _warmup() trains the models, iterate warmup_buffer in arrival
-        order and try to recover every no-label event using the just-trained
-        models. Each recovery overwrites the placeholder result emitted by the
-        warmup branch of process_event. The pass mirrors the post-warmup
-        streaming no-label branch (BFR.match + Platt + sequence rescue) so the
-        recovered labels are produced by exactly the same logic that the
-        immediately following streaming events go through.
-
-        Reads model parameters only; does not retrain. Only writes to
-        self.results (the placeholder slot) and self.prefix_buffer (so the
-        rescue head's prefix context is rebuilt one event at a time in arrival
-        order).
-        """
         n = len(self.warmup_buffer)
         for i, (fv, lbl, ev) in enumerate(self.warmup_buffer):
             if lbl is not None:
@@ -1158,10 +1101,6 @@ class StreamingMLRepairPipeline:
                 self.online_dfg.redetect_parallel_pairs()
 
     def _reset_sequence_head_on_drift(self):
-        """Re-initialise the LSTM rescue head's weights and clear the
-        TemperatureScaler / PlattScaler maps back to identity. The CBRS replay
-        buffer is preserved so the head can re-train on labelled events that
-        accumulate post-drift."""
         if self.sequence_head is None:
             return
         for module in self.sequence_head.modules():
@@ -1235,8 +1174,6 @@ class StreamingMLRepairPipeline:
         }
 
     def _update_prefix_buffer(self, event, label_or_none, provenance, confidence):
-        """Eagerly maintain the per-case activity-id prefix buffer. Called on
-        every arriving event regardless of whether the rescue branch fires."""
         if not self.enable_sequence_head:
             return
         if label_or_none and provenance in ('NORMAL', 'RECOVERED_ML', 'RECOVERED_ML_SEQ'):
@@ -1251,20 +1188,12 @@ class StreamingMLRepairPipeline:
         )
 
     def _count_cache_key(self, prefix_t):
-        """Truncate the per-case prefix snapshot to the last cache.order ids,
-        which becomes the cache lookup key. The prefix_t is the full activity-id
-        window of length self.window_size; the cache uses a much shorter order
-        (typically 2-3) for memorisation density.
-        """
         if self.count_cache is None or prefix_t is None:
             return None
         order = self.count_cache.order
         return tuple(prefix_t[-order:])
 
     def _count_cache_add(self, prefix_t, label):
-        """Record a labelled transition in the count cache, keyed on the last
-        cache.order activity ids and valued by the current event's activity id.
-        """
         key = self._count_cache_key(prefix_t)
         if key is None:
             return
@@ -1274,10 +1203,6 @@ class StreamingMLRepairPipeline:
         self.count_cache.add(key, act_id)
 
     def _count_cache_predict(self, prefix_t):
-        """Look up the cache for the truncated prefix. Returns
-        (predicted_label_or_None, dominance, support). Reserved tokens are
-        never returned as predictions.
-        """
         key = self._count_cache_key(prefix_t)
         if key is None:
             return None, 0.0, 0.0
@@ -1288,9 +1213,6 @@ class StreamingMLRepairPipeline:
         return label, float(dominance), float(support)
 
     def _sequence_head_predict_snapshot(self, prefix_t):
-        """Run the sequence rescue head against the pre-supplied immutable
-        prefix snapshot prefix_t. Returns (predicted_label, calibrated_conf)
-        or (None, 0.0) if no valid prediction."""
         if self.sequence_head is None or prefix_t is None:
             return None, 0.0
         x = torch.tensor([list(prefix_t)], dtype=torch.long)
@@ -1313,10 +1235,6 @@ class StreamingMLRepairPipeline:
         return pred_label, pred_conf
 
     def _sequence_head_online_update_snapshot(self, prefix_t, label):
-        """Perform one mini-batch gradient step on the sequence head using the
-        CBRS replay buffer. Uses the immutable prefix snapshot prefix_t taken
-        BEFORE the current event was added to the buffer, so the training pair
-        (prefix_t, target) cannot include the target itself (Fix #1)."""
         if self.sequence_head is None or self.replay_buffer is None or prefix_t is None:
             return
         prefix_ids = list(prefix_t)

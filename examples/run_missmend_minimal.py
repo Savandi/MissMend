@@ -1,20 +1,3 @@
-"""Minimal end-to-end MissMend example.
-
-Runs the streaming repair pipeline over a short synthetic event stream and
-prints the per-event repair decisions. This file has no external data
-dependency and is meant purely to show the public API:
-
-    pipeline = StreamingMLRepairPipeline(get_config(dataset_name))
-    for result in pipeline.process_stream(events):
-        ...
-
-To run MissMend on a real log instead, replace `synthetic_stream()` with a
-parser from `data/parsers/` (e.g. `DataStreamXESParser(path).parse()` for
-DataStream XES logs) and pass the matching dataset key to `get_config`.
-
-Usage:
-    python examples/run_missmend_minimal.py
-"""
 from __future__ import annotations
 import sys
 from datetime import datetime, timedelta
@@ -27,7 +10,6 @@ from config.default_config import get_config
 from data.parsers.datastream_xes_parser import DataStreamXESEvent
 
 def synthetic_stream(n: int = 80):
-    """Yield a small synthetic stream with a few missing labels (concept:name=None)."""
     t0 = datetime(2025, 1, 1)
     activities = ["Cut", "Weld", "Inspect", "Pack"]
     for i in range(n):

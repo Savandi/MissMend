@@ -1,17 +1,3 @@
-"""Persistent injection store on D: drive.
-
-For each (dataset_slug, rate, seed) the store keeps three files on disk:
-
-    /mnt/d/eval_injection_runs/<dataset_slug>/rate_<rate>/seed_<seed>/
-        events.pkl              # pickled list of post-injection events
-        ground_truth.json       # {str(idx): original_label} for every injected event
-        meta.json               # {n_total, n_labelled, n_injected, sensors, activities, source_path}
-
-Only events with non-empty concept_name are eligible for injection. The original
-label is stored in ground_truth.json before being replaced by None on the
-events stored in events.pkl. The pipeline therefore reads the post-injection
-events directly, and the evaluator reads ground_truth.json to score recoveries.
-"""
 from __future__ import annotations
 import json
 import pickle
@@ -51,12 +37,6 @@ def persist_run(
     source_path: str | None = None,
     overwrite: bool = False,
 ) -> Path:
-    """Create a persisted (rate, seed) injection run for the dataset.
-
-    The injection is applied to a shallow copy: each injected event has its
-    concept_name set to None, but `source_events` itself is not mutated. The
-    persisted events.pkl IS the post-injection list ready for streaming.
-    """
     run_dir = _run_dir(dataset_slug, rate, seed)
     if run_exists(dataset_slug, rate, seed) and not overwrite:
         return run_dir
@@ -101,30 +81,6 @@ def persist_run(
     return run_dir
 
 def load_run(dataset_slug: str, rate: float, seed: int, drop_natural_missing: bool = False):
-    """Load a persisted (rate, seed) run.
-
-    When ``drop_natural_missing`` is True, events whose label is empty in the
-    SOURCE log (i.e. natural-missing, not injected) are filtered out of the
-    returned stream. The injected events keep their (None) label so they
-    remain recovery targets. Original indices are remapped so
-    ``injected_indices`` and ``ground_truth`` refer to the post-filter event
-    list. Useful for datasets like Cotton (11.48% natural-missing) and Chess
-    (15.6%) to test whether cluster geometry improves when natural-missing
-    events do not contribute to BFR sufficient statistics or to the warmup
-    buffer.
-
-    D-drive resilience: if D: drops mid-run (WSL drvfs OSError 19), this
-    function sleeps and retries once. If the second attempt also fails with
-    OSError 19, it raises SystemExit so the caller's whole script aborts
-    cleanly — instead of grinding through the rest of the queue producing
-    errors on every cell while D: stays disconnected.
-
-    Returns:
-        events: post-injection list of events (concept_name=None on injected indices).
-        ground_truth: dict mapping idx -> original label.
-        injected_indices: set of indices whose label was injected.
-        meta: dict from meta.json (includes sensor_vocab, activity_vocab, etc.).
-    """
     import time
     import sys
     run_dir = _run_dir(dataset_slug, rate, seed)

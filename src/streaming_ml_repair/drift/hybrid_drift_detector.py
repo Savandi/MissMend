@@ -4,10 +4,6 @@ from typing import Dict, List, Optional, Tuple
 from .adwin_drift_detector import ADWINDriftDetector
 
 class HybridDriftDetector:
-    """
-    Combines embedding-space drift detection with comprehensive ADWIN-based drift detection.
-    Monitors both reconstruction errors and embedding space changes.
-    """
     def __init__(self, config=None):
         self.config = config or {}
         
@@ -24,17 +20,14 @@ class HybridDriftDetector:
         self.drift_history = []
 
     def update_centroids(self, activity_label: str, centroids: List[np.ndarray], timestamp: int):
-        """Update centroid history for an activity - forwards to embedding detector"""
         if self.use_embedding_detector:
             self.embedding_detector.update_centroids(activity_label, centroids, timestamp)
     
     def update_embedding_norms(self, activity_label: str, embeddings: List[np.ndarray], timestamp: int):
-        """Update embedding norms for an activity - forwards to embedding detector"""
         if self.use_embedding_detector:
             self.embedding_detector.update_embedding_norms(activity_label, embeddings, timestamp)
     
     def detect_drift(self, activity_label: str, timestamp: int) -> Dict:
-        """Detect drift for an activity using configured detectors"""
         return self.update_and_detect_drift(
             activity_label=activity_label,
             centroids=[],
@@ -46,19 +39,6 @@ class HybridDriftDetector:
     def update_and_detect_drift(self, activity_label: str, centroids: List[np.ndarray], 
                                 embeddings: np.ndarray, reconstruction_error: float, 
                                 timestamp: int) -> Dict:
-        """
-        Perform comprehensive drift detection using both embedding and ADWIN methods.
-        
-        Args:
-            activity_label: Activity identifier
-            centroids: List of cluster centroids
-            embeddings: Current embeddings array
-            reconstruction_error: Current reconstruction error
-            timestamp: Current timestamp
-            
-        Returns:
-            Dictionary with comprehensive drift detection results
-        """
         self.event_counter += 1
         
         if self.event_counter < self.warmup_events:
@@ -107,7 +87,6 @@ class HybridDriftDetector:
         return results
     
     def _combine_drift_signals(self, detection_methods: Dict) -> bool:
-        """Combine drift signals from different methods based on strategy"""
         drift_signals = []
         
         if 'embedding' in detection_methods:
@@ -129,7 +108,6 @@ class HybridDriftDetector:
             return any(drift_signals)
     
     def _calculate_overall_severity(self, detection_methods: Dict) -> str:
-        """Calculate overall drift severity from all detection methods"""
         severities = []
         
         if 'embedding' in detection_methods:
@@ -155,7 +133,6 @@ class HybridDriftDetector:
             return 'high'
     
     def _get_triggered_methods(self, detection_methods: Dict) -> List[str]:
-        """Get list of methods that detected drift"""
         triggered = []
         
         if detection_methods.get('embedding', {}).get('drift_detected'):
@@ -168,7 +145,6 @@ class HybridDriftDetector:
         return triggered
     
     def _get_recommendation(self, results: Dict) -> str:
-        """Generate recommendation based on drift detection results"""
         if not results['drift_detected']:
             return 'continue_monitoring'
         
@@ -187,7 +163,6 @@ class HybridDriftDetector:
         return 'monitor_closely'
     
     def get_drift_summary(self) -> Dict:
-        """Get comprehensive drift detection summary"""
         summary = {
             'total_events': self.event_counter,
             'warmup_complete': self.event_counter >= self.warmup_events,
@@ -204,16 +179,6 @@ class HybridDriftDetector:
         return summary
     
     def should_trigger_retraining(self, activity_label: str) -> Tuple[bool, Dict]:
-        """
-        Check if retraining should be triggered for an activity based on drift detection.
-        ADWIN automatically adapts window size - no fixed windows needed.
-        
-        Args:
-            activity_label: Activity to check
-            
-        Returns:
-            Tuple of (should_retrain: bool, info: dict with details)
-        """
         recent_drifts = [d for d in self.drift_history 
                         if d['activity'] == activity_label]
         
@@ -265,7 +230,6 @@ class HybridDriftDetector:
         return should_retrain, info
     
     def reset_detectors(self, activity_label: Optional[str] = None):
-        """Reset drift detectors for specific activity or all activities"""
         if self.use_adwin_detector:
             if activity_label:
                 self.adwin_detector.reset_detector(activity_label)
@@ -274,7 +238,6 @@ class HybridDriftDetector:
                     self.adwin_detector.reset_detector(activity)
         
     def save_state(self, filepath: str):
-        """Save drift detection state"""
         import json
         from datetime import datetime
         
