@@ -119,18 +119,18 @@ Standard public process-mining benchmarks; full source citations are in the pape
 |-----|--------|-------|------------|-------------|-----|
 | **BPIC12** | 262,200 | 13,087 | 36 | Loan application (Dutch financial institution) | [11] |
 | **BPIC13-C** | 6,660 | 1,487 | 7 | Incident management, closed (Volvo IT) | [12] |
-| **BPIC13-I** | 65,533 | 7,554 | 13 | Incident management, incidents | [12] |
-| **BPIC13-O** | 2,351 | 819 | 5 | Incident management, open | [12] |
-| **BPIC17** | 1,202,267 | 31,509 | 26 | Loan application (updated system) | [13] |
-| **BPIC20-DD** | 56,437 | 10,500 | 17 | Travel expenses – Domestic Declarations | [14] |
-| **BPIC20-ID** | 72,151 | 6,449 | 34 | Travel expenses – International Declarations | [14] |
-| **BPIC20-P** | 86,581 | 7,065 | 51 | Travel expenses – Permit | [14] |
-| **BPIC20-PT** | 18,246 | 2,099 | 29 | Travel expenses – Prepaid Travel Cost | [14] |
-| **BPIC20-R** | 36,796 | 6,886 | 19 | Travel expenses – Request for Payment | [14] |
-| **Sepsis** | 15,214 | 1,050 | 16 | Hospital sepsis-treatment traces | [15] |
-| **RoadFine** | 561,470 | 150,370 | 11 | Road Traffic Fine Management | [16] |
-| **WABO** | 8,577 | 1,434 | 27 | Environmental-permit intake (WABO) | [17] |
-| **HelpDesk** | 21,348 | 4,580 | 14 | Italian help-desk ticketing | [18] |
+| **BPIC13-I** | 65,533 | 7,554 | 13 | Incident management, incidents (Volvo IT) | [13] |
+| **BPIC13-O** | 2,351 | 819 | 5 | Incident management, open (Volvo IT) | [14] |
+| **BPIC17** | 1,202,267 | 31,509 | 26 | Loan application (updated system) | [15] |
+| **BPIC20-DD** | 56,437 | 10,500 | 17 | Travel expenses – Domestic Declarations | [16] |
+| **BPIC20-ID** | 72,151 | 6,449 | 34 | Travel expenses – International Declarations | [16] |
+| **BPIC20-P** | 86,581 | 7,065 | 51 | Travel expenses – Permit | [16] |
+| **BPIC20-PT** | 18,246 | 2,099 | 29 | Travel expenses – Prepaid Travel Cost | [16] |
+| **BPIC20-R** | 36,796 | 6,886 | 19 | Travel expenses – Request for Payment | [16] |
+| **Sepsis** | 15,214 | 1,050 | 16 | Hospital sepsis-treatment traces | [17] |
+| **RoadFine** | 561,470 | 150,370 | 11 | Road Traffic Fine Management | [18] |
+| **EnvPermits** | 8,577 | 1,434 | 27 | Environmental-permit application, receipt phase (CoSeLoG) | [19] |
+| **HelpDesk** | 21,348 | 4,580 | 14 | Italian help-desk ticketing | [20] |
 
 ## Baseline Methods
 
@@ -216,18 +216,20 @@ HYPERPARAMETERS.md           complete hyperparameter value sets and per-dataset 
 
 **Non-IoT benchmarks (4TU.ResearchData / TU Eindhoven)**
 
-11. van Dongen, B. (2012). *BPI Challenge 2012* [dataset]. 4TU.ResearchData.
-12. Steeman, W. (2013). *BPI Challenge 2013* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:a7ce5c55-03a7-4583-b855-98b86e1a2b07
-13. van Dongen, B. (2017). *BPI Challenge 2017* [dataset]. 4TU.ResearchData.
-14. van Dongen, B. (2020). *BPI Challenge 2020* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:52fb97d4-4588-43c9-9d04-3604d4613b51
-15. Mannhardt, F. (2016). *Sepsis cases — event log* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:915d2bfb-7e84-49ad-a286-dc35f063a460
-16. de Leoni, M., & Mannhardt, F. (2015). *Road traffic fine management process* [dataset]. 4TU.ResearchData.
-17. Buijs, J. (2022). *Receipt phase of an environmental permit application process (WABO), CoSeLoG project* [dataset]. 4TU.ResearchData.
-18. de Leoni, M. (2015). *Helpdesk event log of an Italian software company* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:0c60edf1-6f83-4e75-9367-4c63b3e9d5bb
+11. van Dongen, B. (2012). *BPI Challenge 2012* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:3926db30-f712-4394-aebc-75976070e91f
+12. Steeman, W. (2013). *BPI Challenge 2013, closed problems* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:c2c3b154-ab26-4b31-a0e8-8f2350ddac11
+13. Steeman, W. (2013). *BPI Challenge 2013, incidents* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:500573e6-accc-4b0c-9576-aa5468b10cee
+14. Steeman, W. (2013). *BPI Challenge 2013, open problems* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:3537c19d-6c64-4b1d-815d-915ab0e479da
+15. van Dongen, B. (2017). *BPI Challenge 2017* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:5f3067df-f10b-45da-b98b-86ae4c7a310b
+16. van Dongen, B. (2020). *BPI Challenge 2020* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:52fb97d4-4588-43c9-9d04-3604d4613b51
+17. Mannhardt, F. (2016). *Sepsis cases — event log* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:915d2bfb-7e84-49ad-a286-dc35f063a460
+18. de Leoni, M., & Mannhardt, F. (2015). *Road traffic fine management process* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:270fd440-1057-4fb9-89a9-b699b47990f5
+19. Buijs, J. (2022). *Receipt phase of an environmental permit application process (WABO), CoSeLoG project* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/12709127.v2
+20. de Leoni, M. (2015). *Helpdesk event log of an Italian software company* [dataset]. 4TU.ResearchData. https://doi.org/10.4121/uuid:0c60edf1-6f83-4e75-9367-4c63b3e9d5bb
 
 ## Acknowledgments
 
-This work was conducted at the Queensland University of Technology (QUT), School of Information Systems, Faculty of Science, and the Centre for Data Science.
+This work was conducted at the Queensland University of Technology (QUT), School of Information Systems, Faculty of Science. The first author is supported by a Food Agility CRC scholarship, funded under the Australian Government's Cooperative Research Centres (CRC) Program.
 
 ## License
 
