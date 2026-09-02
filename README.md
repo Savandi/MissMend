@@ -106,7 +106,7 @@ Four of the six contain **naturally missing** activity labels; the other two (Sm
 | **CottonCandy** | 12,975 | 29 | 44 | Smart manufacturing | ~11.5% | [6] |
 | **SmartFactory** | 21,913 | 272 | 130 | Smart manufacturing | injection | [7] |
 | **ViennaLine** | 275,986 | 1 | 8 | Transportation | ~5% | [8] |
-| **CybersecIoT** | 100,000\* | 1,406 | 90 | Cybersecurity | ~1% | [9] |
+| **CybersecIoT** | 100,000\* | 1,406 | 38 | Cybersecurity | ~1% | [9] |
 | **MIMIC-IV** | 489,370\* | 10,569 | 18\*\* | Healthcare | injection | [10] |
 
 \* Fixed stream prefix (very large source log). \*\* After a top-18 activity-vocabulary filter applied at the loader. Full source citations for all datasets are in the paper.
@@ -171,6 +171,23 @@ This repository provides the **MissMend framework** and a self-contained **Chess
 
 The **baseline methods** (Bi-LSTM, MaskT, DFI, RF-GBT) are re-implementations of prior work; they are described and cited in the paper and are **not redistributed here**. The **twenty evaluation logs** are obtained from their original public sources (see the Datasets tables and the links disclosed in the paper); only ChessPiece is bundled.
 
+## Building the IoT DataStream XES logs
+
+The parsers in `data/parsers/` **read** DataStream XES logs; the scripts that **build** the CybersecIoT and MIMIC-IV DataStream XES logs from their raw sources are provided in `data/datastream_xes/`. The other four IoT logs (ChessPiece, CottonCandy, SmartFactory, ViennaLine) are used as published by their authors (see the Datasets table). Input and output locations are set as constants at the top of each script; edit them to your local paths before running.
+
+**CybersecIoT** — from the FedCSIS 2023 (AAIA) cyber-attack-on-IoT system-call logs [9]:
+
+1. Download the SPINET train/test CSV logs and set `TRAIN_PATH`, `TEST_PATH`, and `OUTPUT_DIR` at the top of `create_cybersec_iot_datastream_xes.py`.
+2. `python data/datastream_xes/create_cybersec_iot_datastream_xes.py` — writes `MainProcess.xes` plus one `subprocesses/<uuid>.xes` per one-minute capture window (traces per process, with `stream:datastream` IoT sensor readings embedded per event).
+3. `python data/datastream_xes/fix_cybersec_mainprocess_xes.py` — applies the MainProcess index/log-window fix.
+
+**MIMIC-IV** — requires **credentialed PhysioNet access** to MIMIC-IV and MIMIC-IV-ED under their Data Use Agreement. The raw data cannot be redistributed, so supply your own download:
+
+1. Obtain MIMIC-IV (`hosp/`, `icu/`) and MIMIC-IV-ED (`ed/`), then set `HOSP_PATH`, `ICU_PATH`, `ED_PATH`, `OUTPUT_PATH`, and `DB_PATH` at the top of `create_mimiciv_datastream_xes.py`.
+2. `python data/datastream_xes/create_mimiciv_datastream_xes.py` — loads the raw `.csv.gz` modules into a local DuckDB and emits the DataStream XES part files (admissions batched per file) into `OUTPUT_PATH`.
+
+The evaluation then reads these logs through `data/parsers/streaming_xes_parser.py`, applying the CybersecIoT first-100,000-event prefix and the MIMIC-IV top-18-of-first-500,000-events subset used in the paper.
+
 ## Repository layout
 
 ```
@@ -186,6 +203,7 @@ src/streaming_ml_repair/     the framework
   drift/                     two-tier ADWIN drift detection
 config/default_config.py     shared defaults + per-dataset settings
 data/parsers/                DataStream XES, BPIC XES, and CSV loaders
+data/datastream_xes/         scripts to build the CybersecIoT and MIMIC-IV DataStream XES logs
 evaluation/                  metrics, label injection, and a controlled-evaluation runner
 examples/                    minimal runnable example
 images/                      figures used in this README
