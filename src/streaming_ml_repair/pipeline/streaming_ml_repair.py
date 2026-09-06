@@ -876,7 +876,7 @@ class StreamingMLRepairPipeline:
                         and cache_sup >= self.count_cache_emit_support):
                     recovered_label = cache_label
                     confidence = cache_dom
-                    flag = 'RECOVERED_ML'
+                    flag = 'RECOVERED_ML_SEQ'
                     rescued = True
                     self.count_cache_direct_emits += 1
 
