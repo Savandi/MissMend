@@ -82,6 +82,12 @@ For the process event streams with **naturally** missing labels (no ground truth
 
 MissMend attains the **highest mean precision on 13 of the 20** process event streams.
 
+**Mean recall per PES (injection rate 0.10)**
+
+Because MissMend abstains on low-confidence events (each abstention counts as a false negative), its recall sits below the always-commit baselines where it abstains. On high-signal streams (MIMIC-IV, the BPIC13 trio) it leads on recall *and* precision.
+
+![Mean recall per PES](images/fig_recall.png)
+
 **Statistical comparison of precision (Friedman + Nemenyi)**
 
 Using the Friedman test (χ²(4) = 15.0, *p* = 0.005) with a Nemenyi post-hoc analysis (α = 0.05, critical difference = 1.36), **MissMend attains the best mean rank (2.05)** on committed precision and **significantly outperforms MaskT and RF-GBT**, while being statistically tied with DFI and Bi-LSTM.
@@ -94,11 +100,44 @@ The confidence gate trades coverage, not precision: committed precision stays hi
 
 ![Coverage and committed precision per PES](images/fig_coverage_precision.png)
 
+**Precision / recall / F1 profile**
+
+MissMend leans toward the precision axis: it reaches the outermost vertex on precision (0.85 vs 0.76–0.78 for the baselines) while trading recall (abstained events count as false negatives), which keeps its F1 within the baselines' band. The always-commit baselines cluster along the identity envelope where recall is at least as high as precision; *Majority* and *Random* form the empirical floor.
+
+![Precision/recall/F1 radar](images/fig_radar.png)
+
+**Per-PES precision breakdown**
+
+Three-seed **mean** committed precision per PES and method (injection rate 0.10). Bold marks the highest mean per row among the research methods (naive *Majority* / *Random* excluded). MissMend attains the highest mean precision on **13 of the 20** streams.
+
+| PES | MissMend | DFI | MaskT | Bi-LSTM | RF-GBT | Majority | Random |
+|-----|:--------:|:---:|:-----:|:-------:|:------:|:--------:|:------:|
+| MIMIC-IV | **0.868** | 0.524 | 0.522 | 0.521 | 0.517 | 0.312 | 0.056 |
+| BPIC13-C | **0.985** | 0.672 | 0.669 | 0.665 | 0.652 | 0.624 | 0.242 |
+| BPIC13-O | **0.984** | 0.692 | 0.685 | 0.692 | 0.681 | 0.704 | 0.340 |
+| BPIC13-I | **0.993** | 0.711 | 0.711 | 0.718 | 0.704 | 0.609 | 0.270 |
+| SmartFactory | **0.707** | 0.340 | 0.344 | 0.399 | 0.585 | 0.106 | 0.008 |
+| EnvPermits | 0.835 | 0.819 | 0.813 | 0.804 | **0.846** | 0.149 | 0.040 |
+| RoadFine | 0.860 | **0.864** | 0.864 | 0.863 | 0.841 | 0.268 | 0.091 |
+| BPIC20-P | **0.856** | 0.769 | 0.763 | 0.762 | 0.766 | 0.084 | 0.021 |
+| CottonCandy | **0.964** | 0.941 | 0.888 | 0.892 | 0.930 | 0.424 | 0.068 |
+| ChessPiece | **0.986** | 0.831 | 0.749 | 0.781 | 0.910 | 0.338 | 0.054 |
+| BPIC20-PT | **0.889** | 0.804 | 0.793 | 0.801 | 0.832 | 0.124 | 0.042 |
+| BPIC17 | **0.857** | 0.838 | 0.838 | 0.845 | 0.846 | 0.174 | 0.039 |
+| BPIC20-ID | **0.850** | 0.829 | 0.825 | 0.815 | 0.807 | 0.112 | 0.029 |
+| BPIC20-R | **0.889** | 0.877 | 0.874 | 0.877 | 0.857 | 0.208 | 0.063 |
+| Sepsis | **0.673** | 0.557 | 0.556 | 0.570 | 0.622 | 0.208 | 0.061 |
+| BPIC20-DD | 0.873 | 0.893 | 0.892 | **0.893** | 0.859 | 0.205 | 0.064 |
+| CybersecIoT | 0.806 | **0.931** | 0.928 | 0.909 | 0.892 | 0.369 | 0.027 |
+| HelpDesk | 0.703 | 0.817 | 0.816 | **0.818** | 0.813 | 0.228 | 0.083 |
+| ViennaLine | 0.818 | **0.999** | 0.848 | 0.814 | 0.807 | 0.207 | 0.124 |
+| BPIC12 | 0.665 | 0.791 | 0.785 | 0.820 | **0.828** | 0.206 | 0.041 |
+
 ## Datasets
 
 ### IoT-enriched Process Event Streams (primary group)
 
-Four of the six contain **naturally missing** activity labels; the other two (SmartFactory, MIMIC-IV) have complete labels and are used for controlled injection. CybersecIoT and MIMIC-IV are evaluated on a fixed stream prefix for tractability.
+Five IoT-enriched logs across smart manufacturing, transportation, and cybersecurity. Four contain **naturally missing** activity labels; SmartFactory has complete labels and is used for controlled injection. CybersecIoT is evaluated on a fixed stream prefix of its very large source log (see note below).
 
 | PES | Events | Cases | Activities | Domain | Natural missing | Ref |
 |-----|--------|-------|------------|--------|-----------------|-----|
@@ -107,13 +146,22 @@ Four of the six contain **naturally missing** activity labels; the other two (Sm
 | **SmartFactory** | 21,913 | 272 | 130 | Smart manufacturing | injection | [7] |
 | **ViennaLine** | 275,986 | 1 | 8 | Transportation | ~5% | [8] |
 | **CybersecIoT** | 100,000\* | 1,406 | 38 | Cybersecurity | ~1% | [9] |
+
+\* Fixed stream prefix of a very large source log (the full CybersecIoT conversion has 120,258 subprocess streams). Full source citations for all datasets are in the paper.
+
+### Enriched but non-IoT (secondary group)
+
+A single healthcare log whose external clinical measurement channels (vital signs, medications, laboratory results) are used as sensor-like features in place of the IoT perspective; it carries no IoT telemetry. It tests whether the framework generalises to numeric measurement streams beyond genuine IoT sensors.
+
+| PES | Events | Cases | Activities | Domain | Missing | Ref |
+|-----|--------|-------|------------|--------|---------|-----|
 | **MIMIC-IV** | 489,370\* | 10,569 | 18\*\* | Healthcare | injection | [10] |
 
-\* Fixed stream prefix (very large source log). \*\* After a top-18 activity-vocabulary filter applied at the loader. Full source citations for all datasets are in the paper.
+\* Fixed stream subset of a very large source conversion (571,274 subprocess cases). \*\* The evaluated subset comprises the 18 most frequent activity classes (top-18 filter at the loader).
 
-### Non-IoT Process-Mining Benchmarks (secondary group)
+### Non-enriched Process-Mining Benchmarks (third group)
 
-Standard public process-mining benchmarks; full source citations are in the paper.
+Standard public process-mining benchmarks with no external enrichment; full source citations are in the paper.
 
 | PES | Events | Cases | Activities | Description | Ref |
 |-----|--------|-------|------------|-------------|-----|
