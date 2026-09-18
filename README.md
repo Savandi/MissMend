@@ -1,11 +1,11 @@
-# MissMend: Online Repair of Missing Activity Labels in IoT-enriched Process Event Streams
+# MissMend: Online Repair of Missing Activity Labels in Internet of Things-enriched Process Event Streams
 
 [![Paper](https://img.shields.io/badge/Paper-EAAI%20(submitted)-blue)]()
 [![Python](https://img.shields.io/badge/Python-3.11+-green.svg)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0.1+-red.svg)](https://pytorch.org/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-Source code and additional resources for the paper **"MissMend: Online repair of missing activity labels in IoT-enriched process event streams"** by Savandi Kalukapuge, Andrzej Janusz, and Moe Thandar Wynn.
+Source code and additional resources for the paper **"MissMend: Online repair of missing activity labels in Internet of Things-enriched process event streams"** by Savandi Kalukapuge, Andrzej Janusz, and Moe Thandar Wynn.
 
 MissMend is a streaming framework for recovering **missing activity labels** in IoT-enriched process event streams. It processes events one at a time in arrival order under bounded memory and bounded latency, and for each event with a missing `concept:name` it either commits a repaired label with a calibrated confidence and a provenance flag, or abstains.
 
@@ -218,6 +218,8 @@ MissMend leads on **precision** (best mean rank; best on 13/20 PESs) and trades 
 This repository provides the **MissMend framework** and a self-contained **ChessPiece** example so the pipeline can be run end-to-end without external data. `evaluation/run_controlled_evaluation.py` reproduces MissMend's own controlled-injection metrics (uniform random label removal at rates 0.05–0.30, three seeds; precision, recall, coverage, F1). Point `DATASET_PATHS` in `data/parsers/datastream_xes_parser.py` at your local copies of the logs first.
 
 The **baseline methods** (Bi-LSTM, MaskT, DFI, RF-GBT) are re-implementations of prior work; they are described and cited in the paper and are **not redistributed here**. The **twenty evaluation logs** are obtained from their original public sources (see the Datasets tables and the links disclosed in the paper); only ChessPiece is bundled.
+
+The **aggregated results** that back every figure and table are in [`results/`](results/) — per-PES precision/recall/F1 (`per_pes_metrics.csv`), the component ablation (`ablation.csv`), and the CybersecIoT scalability run (`scalability_cyberseciot.json`); see [`results/README.md`](results/README.md) for the mapping to each figure.
 
 ## Building the IoT DataStream XES logs
 

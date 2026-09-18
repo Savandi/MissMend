@@ -5,7 +5,7 @@ venv/
 .env
 *.egg-info/
 .DS_Store
-results/
+results/ComparativeAnalysisResults_v3/
 *.xes
 *.xes.yaml
 *.parquet
