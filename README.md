@@ -199,13 +199,13 @@ MissMend is compared against four research baselines (each adapted to the same s
 
 | Method | Mean F1 | Mean precision rank |
 |--------|---------|---------------------|
-| Bi-LSTM | 0.783 | 3.23 |
 | RF-GBT | 0.780 | 3.55 |
 | DFI | 0.775 | 2.55 |
 | **MissMend** | **0.769** | **2.05 (best)** |
+| Bi-LSTM | 0.763 | 3.23 |
 | MaskT | 0.758 | 3.62 |
 
-MissMend leads on **precision** (best mean rank; best on 13/20 PESs) and trades recall for precision by design — it abstains at a mean coverage of 0.84, and the abstention-as-false-negative convention charges each abstention against F1, keeping its F1 within 0.014 of the strongest baseline while committing far more reliable repairs.
+MissMend leads on **precision** (best mean rank; best on 13/20 PESs) and trades recall for precision by design — it abstains at a mean coverage of 0.84, and the abstention-as-false-negative convention charges each abstention against F1, keeping its F1 within 0.011 of the strongest baseline while committing far more reliable repairs. Every always-committing baseline operates at coverage 1, so its micro recall equals its micro precision; only MissMend, which abstains, shows recall below precision.
 
 **Operational feasibility (single-thread CPU)**
 
